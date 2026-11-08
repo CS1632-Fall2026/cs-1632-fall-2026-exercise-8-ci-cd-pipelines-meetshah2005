@@ -1,0 +1,38 @@
+name: Maven CI Container
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  # Runs the Maven test phase on the project inside a container
+  maven_test_container:
+
+    runs-on: ubuntu-latest
+
+    # Run all the steps inside this container instead of directly on the
+    # Runner virtual machine.  This is the same base image as our Dockerfile.
+    container: maven:3.9.14-eclipse-temurin-11-noble
+
+    permissions:
+      contents: read
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v6
+
+    # Note there is no "Set up JDK 11" step: the image already comes with
+    # Temurin JDK 11 and Maven preinstalled.
+    - name: Test with Maven
+      run: mvn -B test site
+
+    - name: Upload test report as artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: Test report (container)
+        path: target/site
